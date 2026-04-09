@@ -45,10 +45,23 @@ class Vocabulary:
     def decode(self, indices):
         """Decode indices to text"""
         words = []
+        start_idx = self.word2idx["<start>"]
+        end_idx = self.word2idx["<end>"]
+        pad_idx = self.word2idx["<pad>"]
+
         for idx in indices:
-            if idx == self.word2idx["<end>"]:
+            # Support torch tensors, numpy scalars, and plain ints.
+            if hasattr(idx, "item"):
+                idx = int(idx.item())
+            else:
+                idx = int(idx)
+
+            if idx == end_idx:
                 break
-            if idx != self.word2idx["<pad>"]:
+            if idx in (pad_idx, start_idx):
+                continue
+
+            if idx != pad_idx:
                 words.append(self.idx2word.get(idx, "<unk>"))
         return " ".join(words)
 
@@ -71,6 +84,7 @@ class Vocabulary:
         with open(filepath, "r") as f:
             data = json.load(f)
             vocab.word2idx = data["word2idx"]
-            vocab.idx2word = data["idx2word"]
+            # JSON object keys are strings, convert back to integer ids.
+            vocab.idx2word = {int(k): v for k, v in data["idx2word"].items()}
             vocab.word_count = Counter(data["word_count"])
         return vocab
