@@ -112,6 +112,7 @@ def prepare_coco_data(base_path: str) -> None:
         f"MSCOCO preparation is not implemented yet. Received base_path={base_path!r}."
     )
 
+
 def ensure_coco_splits(base_path: str) -> None:
     """Generate split files only if they are missing."""
     raise NotImplementedError(
