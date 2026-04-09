@@ -12,11 +12,7 @@ WORKDIR /workspace
 
 COPY requirements.txt /workspace/requirements.txt
 RUN python -m pip install --upgrade pip setuptools wheel \
- && if [ -s /workspace/requirements.txt ]; then pip install -r /workspace/requirements.txt; fi
-
-COPY src/ /workspace/src/
-COPY config/ /workspace/config/
-COPY data/ /workspace/data/
+ && if [ -s /workspace/pyproject.toml ]; then pip install -e .; fi
 
 EXPOSE 8888
 
