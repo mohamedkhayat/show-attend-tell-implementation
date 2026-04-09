@@ -1,0 +1,88 @@
+import json
+from pathlib import Path
+import sys
+
+from PIL import Image
+from torch.utils.data import Dataset
+
+from .vocabulary import Vocabulary
+from ..utils.data import ensure_flicker_splits,ensure_coco_splits
+
+SPLIT_TYPES = {"train", "val", "test"}
+
+
+class AnnotationDataset(Dataset):
+    def __init__(
+        self,
+        data_path: str,
+        split_type="train",
+        vocab=None,
+        transforms=None,
+        max_length=20,
+    ):
+        if split_type not in SPLIT_TYPES:
+            raise ValueError(f"split_type must be one of {sorted(SPLIT_TYPES)}")
+
+        self.data_path = Path(data_path)
+        self.split_type = split_type
+        self.max_length = max_length
+        self.transforms = transforms
+
+        self.img_paths, self.captions = self._get_or_prepare_data()
+
+        if vocab is None:
+            self.vocab = Vocabulary(min_freq=5, max_vocab_size=10000)
+            self.vocab.build_vocab(self.captions)
+        else:
+            self.vocab = vocab
+
+    def __getitem__(self, idx):
+        img_path, caption = self.img_paths[idx], self.captions[idx]
+        img = Image.open(img_path).convert("RGB")
+
+        if self.transforms:
+            img = self.transforms(img)
+
+        caption_indices = self.vocab.encode(caption, self.max_length)
+
+        return img, caption_indices
+
+    def __len__(self):
+        return len(self.captions)
+
+    def _get_or_prepare_data(self):
+        if "flicker" in str(self.data_path):
+            ensure_flicker_splits(str(self.data_path))
+        else:
+            ensure_coco_splits(str(self.data_path))
+
+        img_path_file = self.data_path / f"{self.split_type}_img_paths.json"
+        captions_file = self.data_path / f"{self.split_type}_captions.json"
+
+        with img_path_file.open("r") as f:
+            img_paths = json.load(f)
+
+        with captions_file.open("r") as f:
+            captions = json.load(f)
+
+        if len(img_paths) != len(captions):
+            raise ValueError(
+                "Mismatch between number of image paths and captions in split files"
+            )
+
+        return img_paths, captions
+
+    def get_all_captions_for_image(self, img_path, max_captions=5):
+        """Get up to max_captions reference captions for an image."""
+        matching_idxs = [i for i, path in enumerate(self.img_paths) if path == img_path]
+        # Remove only exact duplicate caption strings while keeping original order.
+        unique_captions = list(dict.fromkeys(self.captions[i] for i in matching_idxs))
+        return unique_captions[:max_captions]
+
+
+# dataset  # dataloader
+if __name__ == "__main__":
+    ds = AnnotationDataset("data/flicker8k", split_type="train")
+    img, label = next(iter(ds))
+    print(f"img : {img}")
+    print(f"caption : {label}")
