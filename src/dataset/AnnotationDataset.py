@@ -5,8 +5,8 @@ from PIL import Image
 import numpy as np
 from torch.utils.data import Dataset
 
-from .vocabulary import Vocabulary
-from ..utils.data import ensure_flicker_splits, ensure_coco_splits
+from src.dataset.vocabulary import Vocabulary
+from src.utils.data import ensure_flicker_splits, ensure_coco_splits
 
 SPLIT_TYPES = {"train", "val", "test"}
 
