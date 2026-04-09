@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
-import sys
 
 from PIL import Image
+import numpy as np
 from torch.utils.data import Dataset
 
 from .vocabulary import Vocabulary
-from ..utils.data import ensure_flicker_splits,ensure_coco_splits
+from ..utils.data import ensure_flicker_splits, ensure_coco_splits
 
 SPLIT_TYPES = {"train", "val", "test"}
 
@@ -38,7 +38,7 @@ class AnnotationDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path, caption = self.img_paths[idx], self.captions[idx]
-        img = Image.open(img_path).convert("RGB")
+        img = np.asarray(Image.open(img_path).convert("RGB"))
 
         if self.transforms:
             img = self.transforms(img)
@@ -78,11 +78,3 @@ class AnnotationDataset(Dataset):
         # Remove only exact duplicate caption strings while keeping original order.
         unique_captions = list(dict.fromkeys(self.captions[i] for i in matching_idxs))
         return unique_captions[:max_captions]
-
-
-# dataset  # dataloader
-if __name__ == "__main__":
-    ds = AnnotationDataset("data/flicker8k", split_type="train")
-    img, label = next(iter(ds))
-    print(f"img : {img}")
-    print(f"caption : {label}")
