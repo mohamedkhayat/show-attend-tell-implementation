@@ -10,10 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /workspace
 
-COPY requirements.txt /workspace/requirements.txt
+COPY requirements.txt pyproject.toml ./
+COPY src/ ./src/
+
 RUN python -m pip install --upgrade pip setuptools wheel \
- && if [ -s /workspace/pyproject.toml ]; then pip install -e .; fi
+	&& pip install -r requirements.txt \
+	&& pip install -e .
 
 EXPOSE 8888
 
-CMD ["python", "src/main.py"]
+CMD ["python", "-m", "src.main"]
