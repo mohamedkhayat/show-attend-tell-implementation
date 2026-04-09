@@ -12,6 +12,7 @@ dependencies = [
     "nltk",
     "pandas",
     "numpy",
+    "numpy",
     "pillow",
 ]
 
