@@ -13,6 +13,9 @@ class Vocabulary:
         self.idx2word = {v: k for k, v in self.word2idx.items()}
         self.word_count = Counter()
 
+    def __len__(self):
+        return len(self.word2idx)
+
     def build_vocab(self, captions):
         """Build vocabulary from captions"""
         # Count word frequencies
