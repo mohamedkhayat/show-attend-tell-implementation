@@ -14,6 +14,9 @@ dependencies = [
     "numpy",
     "numpy",
     "pillow",
+    "matplotlib",
+    "hydra-core",
+    "ruff"
 ]
 
 [tool.setuptools.packages.find]
