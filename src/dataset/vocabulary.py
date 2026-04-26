@@ -36,7 +36,11 @@ class Vocabulary:
         indices = [self.word2idx.get(word, self.word2idx["<unk>"]) for word in words]
 
         # Add <start> and <end>
-        indices = [self.word2idx["<start>"]] + indices[:max_length - 2] + [self.word2idx["<end>"]]
+        indices = (
+            [self.word2idx["<start>"]]
+            + indices[: max_length - 2]
+            + [self.word2idx["<end>"]]
+        )
         # Pad to max_length
         indices += [self.word2idx["<pad>"]] * (max_length - len(indices))
         return torch.tensor(indices[:max_length])
