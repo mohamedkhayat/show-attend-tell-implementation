@@ -3,3 +3,6 @@ nltk
 pandas
 numpy
 pillow
+matplotlib
+hydra-core
+ruff
