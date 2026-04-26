@@ -1,3 +1,4 @@
+#Custom Pytorch Dataset for image cationing tasks.
 import json
 from pathlib import Path
 
@@ -11,9 +12,12 @@ from src.utils.data import ensure_flicker_splits, ensure_coco_splits
 SPLIT_TYPES = {"train", "val", "test"}
 
 
+#Class Definition
 class AnnotationDataset(Dataset):
+    #Constructor
     def __init__(
         self,
+        #Path to Dataset folder
         data_path: str,
         split_type="train",
         vocab=None,
@@ -28,6 +32,7 @@ class AnnotationDataset(Dataset):
         self.max_length = max_length
         self.transforms = transforms
 
+        # Load or prepare data splits and captions.
         self.img_paths, self.captions = self._get_or_prepare_data()
 
         if vocab is None:
@@ -36,6 +41,7 @@ class AnnotationDataset(Dataset):
         else:
             self.vocab = vocab
 
+    #Return one training sample
     def __getitem__(self, idx):
         img_path, caption = self.img_paths[idx], self.captions[idx]
         img = np.asarray(Image.open(img_path).convert("RGB"))
@@ -46,7 +52,8 @@ class AnnotationDataset(Dataset):
         caption_indices = self.vocab.encode(caption, self.max_length)
 
         return img, caption_indices
-
+    
+    #Return number of captions
     def __len__(self):
         return len(self.captions)
 

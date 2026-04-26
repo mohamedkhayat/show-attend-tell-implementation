@@ -8,5 +8,6 @@ if __name__ == "__main__":
     print(f"caption : {ds.vocab.decode(label)}")
     plt.imshow(img)
     plt.show()
+    #Load the CNN Transformer
     transforms = get_transforms("vgg19")
     print(transforms)

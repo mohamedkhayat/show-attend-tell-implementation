@@ -21,18 +21,24 @@ class Vocabulary:
             self.word_count.update(words)
 
         # Add words above min_freq
+        # Keep frequent words
         words = [
             word for word, freq in self.word_count.items() if freq >= self.min_freq
         ]
+        
+        #Reserve space for special tokens
         words = words[: self.max_vocab_size - len(self.word2idx)]
-
+        
+        #Assign IDs
         for idx, word in enumerate(words, start=len(self.word2idx)):
             self.word2idx[word] = idx
             self.idx2word[idx] = word
 
+    
+    #Convert text -> tensor of IDs
     def encode(self, caption, max_length=20):
         """Encode caption to indices"""
-        words = caption.lower().split()
+        words = caption.lower().split()#["a", "dog", "runs"] : Input
         indices = [self.word2idx.get(word, self.word2idx["<unk>"]) for word in words]
 
         # Add <start> and <end>
