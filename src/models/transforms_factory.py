@@ -1,5 +1,5 @@
 import torchvision.transforms.v2 as v2
-from src.dataset.model_factory import MODEL_WEIGHTS_MAPPING
+from src.models.model_factory import MODEL_WEIGHTS_MAPPING
 
 
 def get_transforms(model):
