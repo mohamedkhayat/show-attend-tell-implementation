@@ -1,12 +1,24 @@
-from src.dataset.AnnotationDataset import AnnotationDataset
-import matplotlib.pyplot as plt
-from src.dataset.transforms_factory import get_transforms
+import logging
+
+import torch
+
+from src.utils.logging import configure_logging
+
+
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    ds = AnnotationDataset("data/flicker8k", split_type="train")
-    img, label = next(iter(ds))
-    print(f"caption : {ds.vocab.decode(label)}")
-    plt.imshow(img)
-    plt.show()
-    transforms = get_transforms("vgg19")
-    print(transforms)
+    configure_logging("DEBUG")
+
+    from torchvision.models import VGG19_Weights, vgg19
+
+    logger.info("Loading VGG19 backbone with default pretrained weights")
+    model = vgg19(weights=VGG19_Weights.DEFAULT)
+
+    logger.debug("Model summary:\n%s", model)
+    from src.models.attention import Attention
+
+    att = Attention(encoder_dim=512)
+    prev_hidden = torch.randn(32, 512)
+    rt = torch.randn(32, 196, 512)
+    att(rt, prev_hidden)
