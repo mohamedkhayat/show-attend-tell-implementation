@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	git \
 	ca-certificates \
 	build-essential \
+	openssh-client \
 	curl \
 	ffmpeg \
  && rm -rf /var/lib/apt/lists/*
@@ -16,6 +17,10 @@ COPY src/ ./src/
 RUN python -m pip install --upgrade pip setuptools wheel \
 	&& pip install -r requirements.txt \
 	&& pip install -e .
+
+ENV TORCH_HOME=/workspace/.cache/torch
+
+RUN python -c "from torchvision.models import vgg19, VGG19_Weights; vgg19(weights=VGG19_Weights.DEFAULT)"
 
 EXPOSE 8888
 
