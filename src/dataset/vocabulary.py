@@ -30,6 +30,8 @@ class Vocabulary:
             self.word2idx[word] = idx
             self.idx2word[idx] = word
 
+        self.save("data/flicker8k/vocab.json")
+
     def encode(self, caption, max_length=20):
         """Encode caption to indices"""
         words = caption.lower().split()
