@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class Attention(nn.Module):
-    def __init__(self, encoder_dim):
+    def __init__(self, encoder_dim=512):
         super().__init__()
         self.W_h = nn.Linear(512, 512)
         self.W_a = nn.Linear(encoder_dim, 512)
@@ -34,4 +34,5 @@ class Attention(nn.Module):
         logger.debug("Attention score shape | %s", tuple(attention_scores.shape))
         # an_vec shape : (B, L, D)
         context = (attention_scores.unsqueeze(2) * an_vec).sum(dim=1)
+        logger.debug("Context shape | %s", tuple(context.shape))
         return context, attention_scores
