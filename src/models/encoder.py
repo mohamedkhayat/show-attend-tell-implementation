@@ -13,7 +13,7 @@ class Encoder(nn.Module):
         backbone = torch.hub.load(
             "pytorch/vision", cfg["model"], weights=cfg["weights"]
         )
-        self.features = backbone.features[:28]
+        self.features = backbone.features[:27]
 
     def forward(self, x):
         x = self.features(x)  # (B, 512, 14, 14)
