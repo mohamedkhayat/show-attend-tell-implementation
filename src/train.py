@@ -36,15 +36,15 @@ DECODER_DIM   = 512   # dimension de l'état caché LSTM
 ATTENTION_DIM = 512   # dimension intermédiaire du MLP d'attention
 DROPOUT       = 0.5   # régularisation du décodeur (désactivé en inférence)
 
-BATCH_SIZE      = 32      # T4 Colab a 16GB VRAM — batch 32 est sûr
+BATCH_SIZE      = 64      # Batch size augmenté pour meilleure stabilité (comme le papier)
 EPOCHS          = 30      # l'early stopping arrête avant si convergence
 LR              = 4e-4    # taux d'apprentissage initial (Adam)
 LAMBDA_DS       = 1.0     # poids de la doubly stochastic regularization (Eq. 9)
 GRAD_CLIP       = 5.0     # norme max du gradient (évite les explosions)
-PATIENCE        = 5       # early stopping : epochs sans amélioration avant arrêt
-LR_PATIENCE     = 2       # scheduler : réduit LR après N epochs sans amélioration
+PATIENCE        = 10      # early stopping : epochs sans amélioration avant arrêt (augmenté de 5 → 10)
+LR_PATIENCE     = 5       # scheduler : réduit LR après N epochs sans amélioration (augmenté de 2 → 5)
 LR_FACTOR       = 0.5     # facteur de réduction du LR (nouveau_LR = LR * 0.5)
-FINE_TUNE_AFTER = 999     # epoch à partir de laquelle on débloque l'encodeur (999 = jamais)
+FINE_TUNE_AFTER = 7       # epoch à partir de laquelle on débloque l'encodeur CNN (changé de 999 → 7)
 NUM_WORKERS     = 2       # workers DataLoader (Colab a 2 CPU cores)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -201,8 +201,13 @@ def train():
         dropout=DROPOUT,
     ).to(DEVICE)
 
-    # Seul le décodeur est optimisé au départ — l'encodeur est gelé
-    optimizer = torch.optim.Adam(decoder.parameters(), lr=LR)
+    # Crée deux groupes de paramètres dans l'optimiseur :
+    # - Encodeur : gelé au départ, LR réduit pour le fine-tuning
+    # - Décodeur : entraîné depuis le départ
+    optimizer = torch.optim.Adam([
+        {"params": encoder.features.parameters(), "lr": LR / 10},  # Fine-tuning LR
+        {"params": decoder.parameters(), "lr": LR},
+    ])
 
     # Réduit le LR de moitié si la val loss ne s'améliore pas pendant LR_PATIENCE epochs
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -224,11 +229,9 @@ def train():
 
     for epoch in range(start_epoch, EPOCHS + 1):
         # Débloque l'encodeur après FINE_TUNE_AFTER epochs (nécessite GPU puissant)
-        if epoch == FINE_TUNE_AFTER:
+        if epoch == FINE_TUNE_AFTER and not encoder.features[0].weight.requires_grad:
             encoder.set_fine_tune(True)
-            for param_group in optimizer.param_groups:
-                param_group["lr"] = LR / 10  # LR plus faible pour le fine-tuning CNN
-            print(f"[Epoch {epoch}] Fine-tuning encoder enabled (LR → {LR/10:.1e})")
+            print(f"[Epoch {epoch}] Fine-tuning encoder enabled — encoder params now trainable (LR = {LR/10:.1e})")
 
         t0         = time.time()
         train_loss = run_epoch(encoder, decoder, train_loader, optimizer, pad_idx, train=True)
