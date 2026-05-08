@@ -209,3 +209,8 @@ __marimo__/
 
 data/
 .vscode/
+
+# Model checkpoints — fichiers trop lourds pour GitHub (>100MB)
+checkpoints/*.pt
+checkpoints/*.pth
+important/
