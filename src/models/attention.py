@@ -34,5 +34,5 @@ class Attention(nn.Module):
         logger.debug("Attention score shape | %s", tuple(attention_scores.shape))
         # an_vec shape : (B, L, D)
         context = (attention_scores.unsqueeze(2) * an_vec).sum(dim=1)
-        logger.debug("Context shape | %s", tuple(context.shape))
+        logger.info("Attention output shape | %s", tuple(context.shape))
         return context, attention_scores
