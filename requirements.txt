@@ -6,3 +6,8 @@ pillow
 matplotlib
 hydra-core
 ruff
+tqdm
+scipy
+jupyter
+ipywidgets
+transformers

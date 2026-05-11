@@ -2,9 +2,20 @@ import json
 from pathlib import Path
 from random import Random
 
-import pandas as pd
+import torch
 
 SPLIT_TYPES = ("train", "val", "test")
+
+
+def caption_collate_fn(batch, pad_idx=0):
+    """Dynamic padding: pad each batch to its longest caption."""
+    imgs, captions = zip(*batch)
+    imgs = torch.stack(imgs)
+    max_len = max(cap.size(0) for cap in captions)
+    padded = torch.full((len(captions), max_len), pad_idx, dtype=torch.long)
+    for i, cap in enumerate(captions):
+        padded[i, : cap.size(0)] = cap
+    return imgs, padded
 
 
 def _split_images(
@@ -44,6 +55,8 @@ def prepare_flicker_data(
 
     if abs(sum(split_ratios) - 1.0) > 1e-8:
         raise ValueError("split_ratios must sum to 1.0")
+
+    import pandas as pd  # heavy dep; only needed at data-prep time
 
     captions_df = pd.read_csv(captions_path)
     required_cols = {"image", "caption"}

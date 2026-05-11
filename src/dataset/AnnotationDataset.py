@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from PIL import Image
-import numpy as np
 from torch.utils.data import Dataset
 
 from src.dataset.vocabulary import Vocabulary
@@ -38,12 +37,12 @@ class AnnotationDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path, caption = self.img_paths[idx], self.captions[idx]
-        img = np.asarray(Image.open(img_path).convert("RGB"))
+        img = Image.open(img_path).convert("RGB")
 
         if self.transforms:
             img = self.transforms(img)
 
-        caption_indices = self.vocab.encode(caption, self.max_length)
+        caption_indices = self.vocab.encode(caption, self.max_length, pad=False)
 
         return img, caption_indices
 

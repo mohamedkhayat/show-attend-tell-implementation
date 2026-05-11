@@ -32,20 +32,25 @@ class Vocabulary:
 
         self.save("data/flicker8k/vocab.json")
 
-    def encode(self, caption, max_length=20):
-        """Encode caption to indices"""
+    def encode(self, caption, max_length=None, pad=True):
+        """Encode caption to indices.
+
+        max_length: if set, truncates content words to fit max_length (incl. start/end).
+        pad: if True (and max_length set), pads to max_length. Set False for dynamic batching.
+        """
         words = caption.lower().split()
         indices = [self.word2idx.get(word, self.word2idx["<unk>"]) for word in words]
 
-        # Add <start> and <end>
-        indices = (
-            [self.word2idx["<start>"]]
-            + indices[: max_length - 2]
-            + [self.word2idx["<end>"]]
-        )
-        # Pad to max_length
-        indices += [self.word2idx["<pad>"]] * (max_length - len(indices))
-        return torch.tensor(indices[:max_length])
+        if max_length is not None:
+            indices = indices[: max_length - 2]  # leave room for <start>/<end>
+
+        indices = [self.word2idx["<start>"]] + indices + [self.word2idx["<end>"]]
+
+        if max_length is not None and pad:
+            indices += [self.word2idx["<pad>"]] * (max_length - len(indices))
+            indices = indices[:max_length]
+
+        return torch.tensor(indices, dtype=torch.long)
 
     def decode(self, indices):
         """Decode indices to text"""

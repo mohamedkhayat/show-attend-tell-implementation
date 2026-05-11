@@ -1,0 +1,32 @@
+services:
+  notebook:
+    image: show-attend-tell:latest
+    user: root
+    ports:
+      - "8889:8888"
+    volumes:
+      - .:/workspace
+      # Model weights live OUTSIDE the workspace mount so they persist across runs
+      # without being shadowed by the host directory.
+      - model_cache:/opt/model_cache
+    working_dir: /workspace
+    shm_size: '8gb'
+    environment:
+      - TORCH_HOME=/opt/model_cache/torch
+      - HF_HOME=/opt/model_cache/hf
+      - TRANSFORMERS_CACHE=/opt/model_cache/hf
+      - NVIDIA_VISIBLE_DEVICES=all
+    command:
+      - bash
+      - -c
+      - "pip install -q -r /workspace/requirements.txt && jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --notebook-dir=/workspace"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  model_cache:   # persists VGG19 / ResNet / CLIP weights across container restarts

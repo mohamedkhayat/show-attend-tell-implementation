@@ -1,0 +1,42 @@
+defaults:
+  - encoder: vgg19    # override with encoder=resnet50, encoder=clip_vit_b16, etc.
+  - _self_
+
+mode: train           # train | eval | caption
+
+data:
+  path: data/flicker8k
+  max_seq_len: 30
+  batch_size: 128     # safe for all encoders on RTX 5090 (32 GB VRAM)
+  num_workers: 0    # 0 avoids Docker /dev/shm bus errors; docker-compose has shm_size: 8gb for multi-worker
+
+decoder:
+  dropout_prob: 0.5
+  use_tf: true
+
+training:
+  epochs: 50          # early stopping handles actual convergence
+  lr: 4.0e-4
+  weight_decay: 1.0e-5
+  grad_clip: 5.0
+  lambda_reg: 1.0     # doubly stochastic regularisation coefficient
+  patience: 7         # early stopping patience on val BLEU-4
+  bleu_eval_freq: 1   # evaluate BLEU every N epochs
+  checkpoint_dir: checkpoints/${encoder.name}
+  mixed_precision: true   # bf16 AMP (native on Blackwell / RTX 5090)
+  compile: false          # torch.compile for extra speed — may recompile on dynamic shapes
+
+eval:
+  checkpoint: checkpoints/${encoder.name}/best.pt
+
+caption:
+  image_path: ""      # path to image for mode=caption
+
+wandb:
+  project: show-attend-tell
+  entity: null        # set to your wandb username/team if needed
+  mode: offline       # offline | online | disabled  (set online after wandb login)
+
+hydra:
+  job:
+    chdir: false
