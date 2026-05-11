@@ -214,3 +214,8 @@ data/
 checkpoints/*.pt
 checkpoints/*.pth
 important/
+
+./claude
+checkpoints
+outputs
+*.pdf
