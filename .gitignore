@@ -215,7 +215,8 @@ checkpoints/*.pt
 checkpoints/*.pth
 important/
 
-./claude
+.claude
 checkpoints
 outputs
 *.pdf
+wandb
